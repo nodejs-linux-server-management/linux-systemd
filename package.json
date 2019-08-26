@@ -1,0 +1,36 @@
+{
+	"name": "linux-systemd",
+	"version": "0.0.1",
+	"description": "Systemd wrapper",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"scripts": {
+		"build": "tsc",
+		"test": "tsc && mocha",
+		"prepare": "tsc && mocha"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/nodejs-linux-server-management/linux-systemd.git"
+	},
+	"keywords": [
+		"linux",
+		"systemd",
+		"services"
+	],
+	"author": "Alexandre Picavet",
+	"license": "GPL-3.0",
+	"bugs": {
+		"url": "https://github.com/nodejs-linux-server-management/linux-systemd/issues"
+	},
+	"homepage": "https://github.com/nodejs-linux-server-management/linux-systemd#readme",
+	"dependencies": {
+		"linux-package-manager": "0.0.2",
+		"linux-shell-command": "0.0.6"
+	},
+	"devDependencies": {
+		"@types/node": "^12.6.8",
+		"mocha": "^6.2.0",
+		"typescript": "^3.5.3"
+	}
+}
