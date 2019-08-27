@@ -4,7 +4,7 @@ import { isPackageInstalled } from "linux-package-manager";
 
 export class Systemd {
 
-	private installed: null | boolean = null;
+	private installed: { systemd: null | boolean, sudo: null | boolean } = { systemd: null, sudo: null };
 	private serviceNames: null | string[] = null;
 
 	private static sysd: Systemd;
@@ -18,8 +18,13 @@ export class Systemd {
 	private setup(): Promise<void> {
 		return new Promise((resolve, reject) => {
 			isPackageInstalled('systemd').then((installed) => {
-				this.installed = installed;
-				resolve();
+				this.installed.systemd = installed;
+				isPackageInstalled('sudo').then((installed) => {
+					this.installed.sudo = installed;
+					resolve();
+				}).catch((e) => {
+					reject(e);
+				});
 			}).catch((e) => {
 				reject(e);
 			});
@@ -28,16 +33,20 @@ export class Systemd {
 
 	private isInstalled(): Promise<void> {
 		return new Promise((resolve, reject) => {
-			if (this.installed === null) {
+			if (this.installed.systemd === null || this.installed.sudo === null) {
 				this.setup().then(() => {
-					this.isInstalled().then(() => resolve()).catch(() => reject());
+					this.isInstalled().then(() => resolve()).catch((e) => reject(e));
 				}).catch((e) => {
 					reject(e);
 				});
-			} else if (this.installed === true) {
+			} else if (this.installed.systemd === true && this.installed.sudo === true) {
 				resolve();
+			} else if (this.installed.systemd === true) {
+				reject(Error('sudo isn\'t installed'));
+			} else if (this.installed.sudo === true) {
+				reject(Error('systemd isn\'t installed'));
 			} else {
-				reject(Error('Systemd isn\'t installed'));
+				reject(Error('sudo and systemd aren\'t installed'));
 			}
 		});
 	}

@@ -5,7 +5,7 @@ var linux_shell_command_1 = require("linux-shell-command");
 var linux_package_manager_1 = require("linux-package-manager");
 var Systemd = /** @class */ (function () {
     function Systemd() {
-        this.installed = null;
+        this.installed = { systemd: null, sudo: null };
         this.serviceNames = null;
         if (os_1.platform() !== 'linux') {
             throw Error("This module only runs on linux");
@@ -15,8 +15,13 @@ var Systemd = /** @class */ (function () {
         var _this = this;
         return new Promise(function (resolve, reject) {
             linux_package_manager_1.isPackageInstalled('systemd').then(function (installed) {
-                _this.installed = installed;
-                resolve();
+                _this.installed.systemd = installed;
+                linux_package_manager_1.isPackageInstalled('sudo').then(function (installed) {
+                    _this.installed.sudo = installed;
+                    resolve();
+                }).catch(function (e) {
+                    reject(e);
+                });
             }).catch(function (e) {
                 reject(e);
             });
@@ -25,18 +30,24 @@ var Systemd = /** @class */ (function () {
     Systemd.prototype.isInstalled = function () {
         var _this = this;
         return new Promise(function (resolve, reject) {
-            if (_this.installed === null) {
+            if (_this.installed.systemd === null || _this.installed.sudo === null) {
                 _this.setup().then(function () {
-                    _this.isInstalled().then(function () { return resolve(); }).catch(function () { return reject(); });
+                    _this.isInstalled().then(function () { return resolve(); }).catch(function (e) { return reject(e); });
                 }).catch(function (e) {
                     reject(e);
                 });
             }
-            else if (_this.installed === true) {
+            else if (_this.installed.systemd === true && _this.installed.sudo === true) {
                 resolve();
             }
+            else if (_this.installed.systemd === true) {
+                reject(Error('sudo isn\'t installed'));
+            }
+            else if (_this.installed.sudo === true) {
+                reject(Error('systemd isn\'t installed'));
+            }
             else {
-                reject(Error('Systemd isn\'t installed'));
+                reject(Error('sudo and systemd aren\'t installed'));
             }
         });
     };
